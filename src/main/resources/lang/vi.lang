@@ -1,0 +1,31 @@
+
+# NexGuard - Vietnamese Language
+# Encoding: UTF-8
+
+plugin.enabled=&aNexGuard AntiCheat đã khởi động!
+plugin.disabled=&cNexGuard AntiCheat đã tắt.
+plugin.reload=&aĐã tải lại cấu hình NexGuard!
+plugin.status.header=&b&lNEXGUARD ANTICHEAT
+plugin.status.active=&7Trạng thái: &aĐang hoạt động
+plugin.status.version=&7Phiên bản: &f{version}
+plugin.status.command=&7Lệnh: &f/nexguard reload
+
+error.no_permission=&cBạn không có quyền sử dụng lệnh này!
+error.packet_events_missing=&cKhông tìm thấy PacketEvents! NexGuard sẽ tắt.
+command.usage=&eSử dụng: /nexguard [reload]
+
+ping.kick_message=Ping của bạn quá cao, vào lại để chơi tiếp nhé!
+ping.kick_log=Đã ngắt kết nối {player} do ping {ping}ms.
+
+alert.player=&f{player}
+alert.check=&7[{check}]
+alert.violations=&cSố lần vi phạm: {violations}
+alert.vl=&eĐiểm VL: {vl}
+alert.ping=&bPing: {ping}ms
+
+check.autoclicker=AutoClicker
+check.speed=Speed
+
+violation.detected=&cPhát hiện dấu hiệu bất thường
+violation.count=&7Số lần vi phạm: &f{violations}
+violation.level=&7Điểm vi phạm: &e{vl}
