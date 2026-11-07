@@ -1,10 +1,10 @@
 
 name: NexGuard
-version: 0.1.0-alpha
+version: 1.0.2
 main: vn.nexguard.anticheat.NexGuard
 api-version: '1.21'
 author: TuanCraft1725
-description: He thong bao ve may chu Minecraft
+description: NexGuard AntiCheat
 
 depend:
   - packetevents
@@ -12,10 +12,14 @@ depend:
 commands:
   nexguard:
     description: Quan ly NexGuard
-    usage: /nexguard
+    usage: /nexguard [reload]
     permission: nexguard.admin
 
 permissions:
   nexguard.admin:
-    description: Quan ly he thong NexGuard
+    description: Quan ly NexGuard
+    default: op
+
+  nexguard.alerts:
+    description: Nhan canh bao NexGuard
     default: op
