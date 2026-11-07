@@ -11,13 +11,36 @@ autoclicker:
 ping-protection:
   enabled: true
   max-ping: 5000
-  kick-message: "Ping của bạn quá cao, vào lại để chơi tiếp nhé!"
+  kick-message: "Ping quá cao!"
 
 checks:
   autoclicker:
     enabled: true
   speed:
     enabled: true
+  fastplace:
+    enabled: false
+    max-per-second: 20
+    alert-interval-ms: 3000
+  scaffold:
+    enabled: false
+    min-pitch: 58.0
+    min-horizontal-movement: 0.10
+    required-signals: 6
+
+  # Các bộ kiểm tra đang chờ triển khai
+  reach:
+    enabled: false
+  killaura:
+    enabled: false
+  fly:
+    enabled: false
+  nofall:
+    enabled: false
+  jesus:
+    enabled: false
+  noslow:
+    enabled: false
 
 violations:
   enabled: true
