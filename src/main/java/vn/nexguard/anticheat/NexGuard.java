@@ -2,12 +2,6 @@
 package vn.nexguard.anticheat;
 
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.event.PacketListenerAbstract;
-import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -19,185 +13,89 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
 public final class NexGuard extends JavaPlugin implements Listener {
 
-    private final Map<UUID, Deque<Long>> attacks = new ConcurrentHashMap<>();
-    private final Set<UUID> pendingKick = ConcurrentHashMap.newKeySet();
-
-    private volatile boolean autoClickerEnabled;
-    private volatile int maxCps;
-    private volatile long windowMs;
-    private volatile boolean pingEnabled;
-    private volatile int maxPing;
-
+    private ViolationManager violationManager;
+    private AlertManager alertManager;
     private CombatListener combatListener;
+    private MovementListener movementListener;
+
     private BukkitTask pingTask;
+
+    public ViolationManager getViolationManager() {
+        return violationManager;
+    }
+
+    public AlertManager getAlertManager() {
+        return alertManager;
+    }
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        loadSettings();
+        reloadConfig();
 
-        if (Bukkit.getPluginManager().getPlugin("packetevents") == null) {
-            getLogger().severe("Khong tim thay PacketEvents!");
+        if (Bukkit.getPluginManager()
+                .getPlugin("packetevents") == null) {
+            getLogger().severe(
+                    "Khong tim thay PacketEvents! NexGuard se tat."
+            );
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
 
-        Bukkit.getPluginManager().registerEvents(this, this);
+        violationManager = new ViolationManager(this);
+        alertManager = new AlertManager(this);
 
-        combatListener = new CombatListener();
+        combatListener = new CombatListener(this);
+        movementListener = new MovementListener(this);
+
+        Bukkit.getPluginManager().registerEvents(
+                this, this
+        );
+
+        Bukkit.getPluginManager().registerEvents(
+                movementListener, this
+        );
+
         PacketEvents.getAPI().getEventManager()
                 .registerListener(combatListener);
 
         pingTask = Bukkit.getScheduler().runTaskTimer(
-                this, this::checkPing, 20L, 20L
+                this,
+                this::checkPing,
+                20L,
+                20L
         );
 
-        getLogger().info("NexGuard da khoi dong!");
-    }
-
-    private void loadSettings() {
-        reloadConfig();
-
-        autoClickerEnabled = getConfig().getBoolean(
-                "autoclicker.enabled", true
+        getLogger().info(
+                "NexGuard AntiCheat da khoi dong!"
         );
-
-        maxCps = Math.max(1, getConfig().getInt(
-                "autoclicker.max-cps", 24
-        ));
-
-        windowMs = Math.max(250L, getConfig().getLong(
-                "autoclicker.measurement-window-ms", 1000L
-        ));
-
-        pingEnabled = getConfig().getBoolean(
-                "ping-protection.enabled", true
-        );
-
-        maxPing = Math.max(1, getConfig().getInt(
-                "ping-protection.max-ping", 5000
-        ));
-    }
-
-    private final class CombatListener extends PacketListenerAbstract {
-
-        private CombatListener() {
-            super(PacketListenerPriority.NORMAL);
-        }
-
-        @Override
-        public void onPacketReceive(PacketReceiveEvent event) {
-            if (!autoClickerEnabled) return;
-
-            if (event.getPacketType()
-                    != PacketType.Play.Client.INTERACT_ENTITY) {
-                return;
-            }
-
-            WrapperPlayClientInteractEntity packet =
-                    new WrapperPlayClientInteractEntity(event);
-
-            if (packet.getAction()
-                    != WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
-                return;
-            }
-
-            UUID uuid = event.getUser().getUUID();
-
-            if (pendingKick.contains(uuid)) return;
-
-            long now = System.nanoTime() / 1_000_000L;
-
-            Deque<Long> times = attacks.computeIfAbsent(
-                    uuid, key -> new ArrayDeque<>()
-            );
-
-            boolean exceeded;
-
-            synchronized (times) {
-                while (!times.isEmpty()
-                        && now - times.peekFirst() >= windowMs) {
-                    times.removeFirst();
-                }
-
-                times.addLast(now);
-
-                // max-cps = 24 means kick from 25 attacks.
-                exceeded = times.size() > maxCps;
-            }
-
-            if (exceeded && pendingKick.add(uuid)) {
-                Bukkit.getScheduler().runTask(
-                        NexGuard.this,
-                        () -> kickForAutoClicker(uuid, times)
-                );
-            }
-        }
-    }
-
-    private void kickForAutoClicker(
-            UUID uuid, Deque<Long> times
-    ) {
-        Player player = Bukkit.getPlayer(uuid);
-
-        if (player != null && player.isOnline()) {
-            int count;
-
-            synchronized (times) {
-                count = times.size();
-            }
-
-            List<String> lines = getConfig().getStringList(
-                    "autoclicker.kick-message"
-            );
-
-            String message;
-
-            if (lines.isEmpty()) {
-                message = "&c&lNEXGUARD\n"
-                        + "&7Bạn click quá nhanh!\n"
-                        + "&7Vui lòng không sử dụng AutoClicker.";
-            } else {
-                message = String.join("\n", lines);
-            }
-
-            getLogger().warning(
-                    "Da kick " + player.getName()
-                            + " - " + count + " attack packets."
-            );
-
-            player.kickPlayer(color(message));
-        }
-
-        attacks.remove(uuid);
-        pendingKick.remove(uuid);
     }
 
     private void checkPing() {
-        if (!pingEnabled) return;
+        if (!getConfig().getBoolean(
+                "ping-protection.enabled", true)) {
+            return;
+        }
+
+        int maxPing = Math.max(
+                1,
+                getConfig().getInt(
+                        "ping-protection.max-ping", 5000
+                )
+        );
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            int ping = player.getPing();
-
-            if (ping > maxPing) {
-                getLogger().warning(
-                        "Da kick " + player.getName()
-                                + " do ping " + ping + "ms."
-                );
-
+            if (player.getPing() > maxPing) {
                 String message = getConfig().getString(
                         "ping-protection.kick-message",
                         "Ping của bạn quá cao, vào lại để chơi tiếp nhé!"
+                );
+
+                getLogger().warning(
+                        "Da ngat ket noi " + player.getName()
+                                + " do ping " + player.getPing() + "ms."
                 );
 
                 player.kickPlayer(color(message));
@@ -206,16 +104,31 @@ public final class NexGuard extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onQuit(PlayerQuitEvent event) {
-        UUID uuid = event.getPlayer().getUniqueId();
-        attacks.remove(uuid);
-        pendingKick.remove(uuid);
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        if (combatListener != null) {
+            combatListener.removePlayer(
+                    event.getPlayer().getUniqueId()
+            );
+        }
+
+        if (movementListener != null) {
+            movementListener.reset(
+                    event.getPlayer().getUniqueId()
+            );
+        }
+
+        if (alertManager != null) {
+            alertManager.clear(
+                    event.getPlayer().getUniqueId()
+            );
+        }
     }
 
     private String color(String message) {
         return ChatColor.translateAlternateColorCodes(
                 '&',
-                message == null ? "" : message.replace("\\n", "\n")
+                message == null ? "" :
+                        message.replace("\\n", "\n")
         );
     }
 
@@ -231,20 +144,29 @@ public final class NexGuard extends JavaPlugin implements Listener {
         }
 
         if (!sender.hasPermission("nexguard.admin")) {
-            sender.sendMessage(color("&cBạn không có quyền!"));
+            sender.sendMessage(
+                    color("&cBạn không có quyền sử dụng lệnh này!")
+            );
             return true;
         }
 
         if (args.length > 0
                 && args[0].equalsIgnoreCase("reload")) {
-            loadSettings();
-            sender.sendMessage(color("&aĐã tải lại cấu hình NexGuard!"));
+
+            reloadConfig();
+
+            sender.sendMessage(
+                    color("&aĐã tải lại cấu hình NexGuard!")
+            );
             return true;
         }
 
-        sender.sendMessage(color("&bNexGuard AntiCheat"));
+        sender.sendMessage(color("&b&lNEXGUARD ANTICHEAT"));
         sender.sendMessage(color("&7Trạng thái: &aĐang hoạt động"));
-        sender.sendMessage(color("&7Phiên bản: " + getDescription().getVersion()));
+        sender.sendMessage(color("&7Phiên bản: "
+                + getDescription().getVersion()));
+        sender.sendMessage(color("&7Lệnh: &f/nexguard reload"));
+
         return true;
     }
 
@@ -257,11 +179,13 @@ public final class NexGuard extends JavaPlugin implements Listener {
         if (combatListener != null) {
             PacketEvents.getAPI().getEventManager()
                     .unregisterListener(combatListener);
+            combatListener.clear();
         }
 
-        attacks.clear();
-        pendingKick.clear();
+        if (movementListener != null) {
+            movementListener.clear();
+        }
 
-        getLogger().info("NexGuard da tat.");
+        getLogger().info("NexGuard AntiCheat da tat.");
     }
 }
