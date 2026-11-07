@@ -1,3 +1,4 @@
+
 name: Build NexGuard
 
 on:
@@ -23,9 +24,13 @@ jobs:
       - name: Bien dich
         run: gradle clean build
 
+      - name: Doi ten JAR
+        run: |
+          mkdir -p release
+          cp build/libs/*.jar release/NexGuard-AntiCheat-1.0.2.jar
+
       - name: Luu JAR
         uses: actions/upload-artifact@v4
         with:
-          name: NexGuard-JAR
-          path: build/libs/*.jar
-
+          name: NexGuard-AntiCheat-1.0.2
+          path: release/NexGuard-AntiCheat-1.0.2.jar
