@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "vn.nexguard"
-version = "0.1.0-alpha"
+version = "1.0.2"
 
 repositories {
     mavenCentral()
@@ -18,16 +18,10 @@ repositories {
         name = "CodeMC"
         url = uri("https://repo.codemc.io/repository/maven-releases/")
     }
-
-    maven {
-        name = "CodeMCSnapshots"
-        url = uri("https://repo.codemc.io/repository/maven-snapshots/")
-    }
 }
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
-
     compileOnly("com.github.retrooper:packetevents-spigot:2.14.0")
 }
 
