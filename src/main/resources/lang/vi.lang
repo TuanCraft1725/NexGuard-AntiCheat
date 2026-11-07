@@ -29,3 +29,5 @@ check.speed=Speed
 violation.detected=&cPhát hiện dấu hiệu bất thường
 violation.count=&7Số lần vi phạm: &f{violations}
 violation.level=&7Điểm vi phạm: &e{vl}
+check.fastplace=Đặt Block Quá Nhanh
+check.scaffold=Scaffold
