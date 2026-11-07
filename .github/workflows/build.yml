@@ -18,8 +18,10 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Kiem tra Gradle
-        run: gradle --version
+      - name: Cai Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
 
       - name: Bien dich NexGuard
         run: gradle clean build --no-daemon
@@ -34,3 +36,4 @@ jobs:
         with:
           name: NexGuard-AntiCheat-1.0.2
           path: release/NexGuard-AntiCheat-1.0.2.jar
+          if-no-files-found: error
