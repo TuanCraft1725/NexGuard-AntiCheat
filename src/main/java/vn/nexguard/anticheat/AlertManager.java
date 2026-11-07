@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,10 +37,13 @@ public final class AlertManager {
         }
 
         long now = System.currentTimeMillis();
-        long cooldown = Math.max(0,
+
+        long cooldown = Math.max(
+                0,
                 plugin.getConfig().getLong(
                         "alerts.cooldown-seconds", 2
-                )) * 1000L;
+                )
+        ) * 1000L;
 
         Long last = cooldowns.get(target.getUniqueId());
 
@@ -49,7 +53,7 @@ public final class AlertManager {
 
         cooldowns.put(target.getUniqueId(), now);
 
-        int ping = target.getPing();
+        LanguageManager lang = plugin.getLanguageManager();
 
         String prefix = plugin.getConfig().getString(
                 "general.prefix", "&b&lNEXGUARD &8» "
@@ -57,47 +61,87 @@ public final class AlertManager {
 
         StringBuilder message = new StringBuilder(prefix);
 
+        String checkKey;
+
+        if ("autoclicker".equalsIgnoreCase(checkName)) {
+            checkKey = "check.autoclicker";
+        } else if ("speed".equalsIgnoreCase(checkName)) {
+            checkKey = "check.speed";
+        } else {
+            checkKey = null;
+        }
+
+        String translatedCheck = checkKey == null
+                ? checkName
+                : lang.get(checkKey);
+
         if (plugin.getConfig().getBoolean(
                 "alerts.show.player", true)) {
-            message.append("&f")
-                    .append(target.getName())
-                    .append(" ");
+            message.append(
+                    lang.get(
+                            "alert.player",
+                            "player",
+                            target.getName()
+                    )
+            ).append(" ");
         }
 
         if (plugin.getConfig().getBoolean(
                 "alerts.show.check", true)) {
-            message.append("&7[")
-                    .append(checkName)
-                    .append("] ");
+            message.append(
+                    lang.get(
+                            "alert.check",
+                            "check",
+                            translatedCheck
+                    )
+            ).append(" ");
         }
 
         if (plugin.getConfig().getBoolean(
                 "alerts.show.violations", true)) {
-            message.append("&cViolations: ")
-                    .append(violations)
-                    .append(" ");
+            message.append(
+                    lang.get(
+                            "alert.violations",
+                            "violations",
+                            String.valueOf(violations)
+                    )
+            ).append(" ");
         }
 
         if (plugin.getConfig().getBoolean(
                 "alerts.show.vl", true)) {
-            message.append("&eVL: ")
-                    .append(String.format("%.1f", vl))
-                    .append(" ");
+            message.append(
+                    lang.get(
+                            "alert.vl",
+                            "vl",
+                            String.format(
+                                    Locale.US,
+                                    "%.1f",
+                                    vl
+                            )
+                    )
+            ).append(" ");
         }
 
         if (plugin.getConfig().getBoolean(
                 "alerts.show.ping", true)) {
-            message.append("&bPing: ")
-                    .append(ping)
-                    .append("ms");
+            message.append(
+                    lang.get(
+                            "alert.ping",
+                            "ping",
+                            String.valueOf(target.getPing())
+                    )
+            );
         }
 
         String formatted = ChatColor.translateAlternateColorCodes(
-                '&', message.toString()
+                '&',
+                message.toString()
         );
 
         String permission = plugin.getConfig().getString(
-                "alerts.permission", "nexguard.alerts"
+                "alerts.permission",
+                "nexguard.alerts"
         );
 
         for (Player staff : Bukkit.getOnlinePlayers()) {
