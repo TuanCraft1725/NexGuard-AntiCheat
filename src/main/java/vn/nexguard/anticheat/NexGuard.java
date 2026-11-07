@@ -20,6 +20,7 @@ public final class NexGuard extends JavaPlugin implements Listener {
     private AlertManager alertManager;
     private CombatListener combatListener;
     private MovementListener movementListener;
+    private AdvancedChecksListener advancedChecksListener;
 
     private BukkitTask pingTask;
 
@@ -42,16 +43,8 @@ public final class NexGuard extends JavaPlugin implements Listener {
 
         languageManager = new LanguageManager(this);
 
-        if (Bukkit.getPluginManager()
-                .getPlugin("packetevents") == null) {
-            getLogger().severe(
-                    ChatColor.stripColor(
-                            languageManager.get(
-                                    "error.packet_events_missing"
-                            )
-                    )
-            );
-
+        if (Bukkit.getPluginManager().getPlugin("packetevents") == null) {
+            getLogger().severe("Không tìm thấy PacketEvents!");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
@@ -61,83 +54,68 @@ public final class NexGuard extends JavaPlugin implements Listener {
 
         combatListener = new CombatListener(this);
         movementListener = new MovementListener(this);
+        advancedChecksListener = new AdvancedChecksListener(this);
 
         Bukkit.getPluginManager().registerEvents(this, this);
+        Bukkit.getPluginManager().registerEvents(movementListener, this);
         Bukkit.getPluginManager().registerEvents(
-                movementListener, this
+                advancedChecksListener, this
         );
 
         PacketEvents.getAPI().getEventManager()
                 .registerListener(combatListener);
 
         pingTask = Bukkit.getScheduler().runTaskTimer(
-                this,
-                this::checkPing,
-                20L,
-                20L
+                this, this::checkPing, 20L, 20L
         );
 
-        getLogger().info(
-                ChatColor.stripColor(
-                        languageManager.get("plugin.enabled")
-                )
-        );
+        getLogger().info("NexGuard AntiCheat đã khởi động!");
     }
 
     private void checkPing() {
-        if (!getConfig().getBoolean(
-                "ping-protection.enabled", true)) {
+        if (!getConfig().getBoolean("ping-protection.enabled", true)) {
             return;
         }
 
         int maxPing = Math.max(
                 1,
-                getConfig().getInt(
-                        "ping-protection.max-ping", 5000
-                )
+                getConfig().getInt("ping-protection.max-ping", 5000)
         );
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             int ping = player.getPing();
 
             if (ping > maxPing) {
-                String message = languageManager.get(
-                        "ping.kick_message"
+                player.kickPlayer(
+                        languageManager.get("ping.kick_message")
                 );
 
                 getLogger().warning(
-                        ChatColor.stripColor(
-                                languageManager.get(
-                                        "ping.kick_log",
-                                        "player", player.getName(),
-                                        "ping", String.valueOf(ping)
-                                )
-                        )
+                        "Đã ngắt kết nối " + player.getName()
+                                + " do ping " + ping + "ms."
                 );
-
-                player.kickPlayer(message);
             }
         }
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
+        var uuid = event.getPlayer().getUniqueId();
+
         if (combatListener != null) {
-            combatListener.removePlayer(
-                    event.getPlayer().getUniqueId()
-            );
+            combatListener.removePlayer(uuid);
         }
 
         if (movementListener != null) {
-            movementListener.reset(
-                    event.getPlayer().getUniqueId()
-            );
+            movementListener.reset(uuid);
+        }
+
+        if (advancedChecksListener != null) {
+            advancedChecksListener.removePlayer(uuid);
         }
 
         if (alertManager != null) {
-            alertManager.clear(
-                    event.getPlayer().getUniqueId()
-            );
+            alertManager.clear(uuid);
         }
     }
 
@@ -159,24 +137,15 @@ public final class NexGuard extends JavaPlugin implements Listener {
             return true;
         }
 
-        if (args.length > 0
-                && args[0].equalsIgnoreCase("reload")) {
-
+        if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
             reloadConfig();
             languageManager.load();
-
-            sender.sendMessage(
-                    languageManager.get("plugin.reload")
-            );
+            sender.sendMessage(languageManager.get("plugin.reload"));
             return true;
         }
 
-        sender.sendMessage(
-                languageManager.get("plugin.status.header")
-        );
-        sender.sendMessage(
-                languageManager.get("plugin.status.active")
-        );
+        sender.sendMessage(languageManager.get("plugin.status.header"));
+        sender.sendMessage(languageManager.get("plugin.status.active"));
         sender.sendMessage(
                 languageManager.get(
                         "plugin.status.version",
@@ -184,9 +153,7 @@ public final class NexGuard extends JavaPlugin implements Listener {
                         getDescription().getVersion()
                 )
         );
-        sender.sendMessage(
-                languageManager.get("plugin.status.command")
-        );
+        sender.sendMessage(languageManager.get("plugin.status.command"));
 
         return true;
     }
@@ -207,16 +174,14 @@ public final class NexGuard extends JavaPlugin implements Listener {
             movementListener.clear();
         }
 
+        if (advancedChecksListener != null) {
+            advancedChecksListener.clear();
+        }
+
         if (alertManager != null) {
             alertManager.clearAll();
         }
 
-        if (languageManager != null) {
-            getLogger().info(
-                    ChatColor.stripColor(
-                            languageManager.get("plugin.disabled")
-                    )
-            );
-        }
+        getLogger().info("NexGuard AntiCheat đã tắt.");
     }
 }
