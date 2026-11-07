@@ -1,0 +1,53 @@
+
+# ==================================
+# NexGuard AntiCheat - Cau hinh
+# ==================================
+
+general:
+  language: vi
+  debug: false
+
+autoclicker:
+  enabled: true
+  max-cps: 24
+  measurement-window-ms: 1000
+  kick-message:
+    - "&c&lNEXGUARD"
+    - "&7Bạn click quá nhanh!"
+    - "&7Vui lòng không sử dụng AutoClicker."
+
+ping-protection:
+  enabled: true
+  max-ping: 5000
+  kick-message: "&cPing của bạn quá cao, vào lại để chơi tiếp nhé!"
+
+checks:
+  reach:
+    enabled: true
+    max-distance: 4.0
+
+  hitbox:
+    enabled: true
+
+  killaura:
+    enabled: true
+
+  fly:
+    enabled: true
+
+  timer:
+    enabled: true
+
+  scaffold:
+    enabled: true
+
+  velocity:
+    enabled: true
+
+  antispoof:
+    enabled: true
+
+logging:
+  enabled: true
+  console: true
+  file: true
