@@ -29,3 +29,5 @@ check.speed=Speed
 violation.detected=&cSuspicious activity detected
 violation.count=&7Violation count: &f{violations}
 violation.level=&7Violation Level: &e{vl}
+check.fastplace=FastPlace
+check.scaffold=Scaffold
