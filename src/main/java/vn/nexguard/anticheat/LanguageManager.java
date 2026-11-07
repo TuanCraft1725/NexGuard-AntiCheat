@@ -3,16 +3,18 @@ package vn.nexguard.anticheat;
 
 import org.bukkit.ChatColor;
 
-import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.Properties;
 
 public final class LanguageManager {
 
     private final NexGuard plugin;
+
     private Properties messages = new Properties();
+    private Properties english = new Properties();
 
     public LanguageManager(NexGuard plugin) {
         this.plugin = plugin;
@@ -27,26 +29,33 @@ public final class LanguageManager {
             language = "vi";
         }
 
-        language = language.trim().toLowerCase();
+        language = language.trim().toLowerCase(Locale.ROOT);
 
         if (!language.equals("vi") && !language.equals("en")) {
+            plugin.getLogger().warning(
+                    "Ngôn ngữ không hợp lệ, chuyển sang English."
+            );
             language = "en";
         }
 
-        String path = "lang/" + language + ".lang";
-        File file = new File(plugin.getDataFolder(), path);
+        english = readLanguage("lang/en.lang");
 
-        if (!file.exists()) {
-            plugin.saveResource(path, false);
+        if (language.equals("en")) {
+            messages = english;
+        } else {
+            messages = readLanguage("lang/vi.lang");
         }
+    }
 
-        Properties loaded = new Properties();
+    private Properties readLanguage(String path) {
+        Properties result = new Properties();
 
         try (InputStream input = plugin.getResource(path)) {
             if (input == null) {
-                throw new IllegalStateException(
-                        "Missing language resource: " + path
+                plugin.getLogger().severe(
+                        "Không tìm thấy tệp ngôn ngữ: " + path
                 );
+                return result;
             }
 
             try (InputStreamReader reader =
@@ -54,40 +63,16 @@ public final class LanguageManager {
                                  input,
                                  StandardCharsets.UTF_8
                          )) {
-                loaded.load(reader);
+                result.load(reader);
             }
+
         } catch (Exception exception) {
             plugin.getLogger().severe(
-                    "Cannot load language: " + path
-            );
-
-            if (!language.equals("en")) {
-                language = "en";
-                loadEnglishFallback(loaded);
-            }
-        }
-
-        messages = loaded;
-    }
-
-    private void loadEnglishFallback(Properties loaded) {
-        try (InputStream input =
-                     plugin.getResource("lang/en.lang")) {
-
-            if (input == null) return;
-
-            try (InputStreamReader reader =
-                         new InputStreamReader(
-                                 input,
-                                 StandardCharsets.UTF_8
-                         )) {
-                loaded.load(reader);
-            }
-        } catch (Exception exception) {
-            plugin.getLogger().severe(
-                    "Cannot load English fallback language."
+                    "Không thể tải ngôn ngữ: " + path
             );
         }
+
+        return result;
     }
 
     public String get(String key) {
@@ -98,7 +83,7 @@ public final class LanguageManager {
         String message = messages.getProperty(key);
 
         if (message == null) {
-            message = key;
+            message = english.getProperty(key, key);
         }
 
         for (int i = 0; i + 1 < placeholders.length; i += 2) {
@@ -109,7 +94,8 @@ public final class LanguageManager {
         }
 
         return ChatColor.translateAlternateColorCodes(
-                '&', message.replace("\\n", "\n")
+                '&',
+                message.replace("\\n", "\n")
         );
     }
 }
