@@ -1,141 +1,49 @@
 
-# ==========================================
-# NexGuard AntiCheat 1.0.2
-# Author: TuanCraft1725
-# Ngon ngu: Tieng Viet
-# ==========================================
-
 general:
   language: vi
   debug: false
   prefix: "&b&lNEXGUARD &8» "
 
-# ==========================================
-# 1. AUTCLICKER
-# ==========================================
-
 autoclicker:
-  enabled: true
   max-cps: 24
   measurement-window-ms: 1000
-  kick-message:
-    - "&c&lNEXGUARD"
-    - "&7Phát hiện tốc độ tấn công bất thường!"
-    - "&7Vui lòng không sử dụng phần mềm gian lận."
-
-# ==========================================
-# 2. PING PROTECTION
-# ==========================================
 
 ping-protection:
   enabled: true
   max-ping: 5000
   kick-message: "Ping của bạn quá cao, vào lại để chơi tiếp nhé!"
 
-# ==========================================
-# 3. COMBAT CHECKS
-# ==========================================
-
 checks:
-  reach:
-    enabled: true
-    max-distance: 4.0
-
-  hitbox:
-    enabled: true
-
-  killaura:
-    enabled: true
-
   autoclicker:
     enabled: true
-
-  aimassist:
-    enabled: true
-
-  velocity:
-    enabled: true
-
-# ==========================================
-# 4. MOVEMENT CHECKS
-# ==========================================
-
-  fly:
-    enabled: true
-
   speed:
     enabled: true
 
-  timer:
-    enabled: true
-
-  nofall:
-    enabled: true
-
-  scaffold:
-    enabled: true
-
-  jesus:
-    enabled: true
-
-  spider:
-    enabled: true
-
-  step:
-    enabled: true
-
-# ==========================================
-# 5. VIOLATION SYSTEM
-# ==========================================
-
 violations:
   enabled: true
-
-  # Moi vi pham se duoc tinh diem VL
   max-vl: 100
-
-  # Khong tu dong ban mac dinh
   autoban: false
-
-  # Moc VL neu sau nay bat autoban
   autoban-threshold: 50
-
-  # Xoa VL sau mot khoang thoi gian
   autoclear:
     enabled: true
     interval-seconds: 300
 
-# ==========================================
-# 6. STAFF ALERTS
-# ==========================================
-
 alerts:
   enabled: true
-
   permission: "nexguard.alerts"
-
   show:
     player: true
     check: true
     violations: true
     vl: true
     ping: true
-
   cooldown-seconds: 2
-
-# ==========================================
-# 7. LOGGING
-# ==========================================
 
 logging:
   enabled: true
   console: true
   file: true
   filename: "violations.log"
-
-# ==========================================
-# 8. SECURITY
-# ==========================================
 
 security:
   telemetry: false
