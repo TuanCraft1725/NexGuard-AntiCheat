@@ -1,0 +1,31 @@
+
+# NexGuard - English Language
+# Encoding: UTF-8
+
+plugin.enabled=&aNexGuard AntiCheat has been enabled!
+plugin.disabled=&cNexGuard AntiCheat has been disabled.
+plugin.reload=&aNexGuard configuration reloaded!
+plugin.status.header=&b&lNEXGUARD ANTICHEAT
+plugin.status.active=&7Status: &aRunning
+plugin.status.version=&7Version: &f{version}
+plugin.status.command=&7Command: &f/nexguard reload
+
+error.no_permission=&cYou do not have permission to use this command!
+error.packet_events_missing=&cPacketEvents was not found! NexGuard will be disabled.
+command.usage=&eUsage: /nexguard [reload]
+
+ping.kick_message=Your ping is too high. Please rejoin to continue playing!
+ping.kick_log=Disconnected {player} due to high ping ({ping}ms).
+
+alert.player=&f{player}
+alert.check=&7[{check}]
+alert.violations=&cViolations: {violations}
+alert.vl=&eViolation Level: {vl}
+alert.ping=&bPing: {ping}ms
+
+check.autoclicker=AutoClicker
+check.speed=Speed
+
+violation.detected=&cSuspicious activity detected
+violation.count=&7Violation count: &f{violations}
+violation.level=&7Violation Level: &e{vl}
